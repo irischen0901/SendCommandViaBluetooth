@@ -25,6 +25,7 @@ import android.widget.Toast;
 public class BTDeviceListActivity extends Activity {
 	private BluetoothAdapter mBTAdapter = null;
 	private ArrayAdapter<String> pairedDevicesArrayAdapter = null,mNewDevicesArrayAdapter = null;
+	public static String EXTRA_DEVICE_ADDRESS = "device_address";
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -38,7 +39,7 @@ public class BTDeviceListActivity extends Activity {
 		 mNewDevicesArrayAdapter = new ArrayAdapter<String>(this,
 					R.layout.device_name);
 			
-		 checkBlueToothAdapter();
+		
 		 searchBondedDevice();
 		 
 		 // Register for broadcasts when a device is discovered
@@ -80,20 +81,7 @@ public class BTDeviceListActivity extends Activity {
 		
 	}
 
-	/**
-	 * device may not support bluetooth
-	 */
 
-	private void checkBlueToothAdapter() {
-		StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
-		mBTAdapter = BluetoothAdapter.getDefaultAdapter();
-		Log.e(MainActivity.tag, "66/"+ste.getFileName()+" in "+ste.getMethodName()+" mBTAdapter="+mBTAdapter);
-		if (mBTAdapter == null) {
-			Toast.makeText(BTDeviceListActivity.this, "Bluetooth is not available",
-					Toast.LENGTH_SHORT).show();
-			finish();
-		}
-	}
 
 	private void searchNewBTDevice() {
 		
@@ -135,14 +123,12 @@ public class BTDeviceListActivity extends Activity {
             // Cancel discovery because it's costly and we're about to connect
             mBTAdapter.cancelDiscovery();
             StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
-    		Log.e(MainActivity.tag, "138/"+ste.getFileName()+" in "+ste.getMethodName()+" v="+v);
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
             Log.e(MainActivity.tag, "138/"+ste.getFileName()+" in "+ste.getMethodName()+" info="+info);
            
             String address = info.substring(info.length() - 17);
-            Log.e(MainActivity.tag, "138/"+ste.getFileName()+" in "+ste.getMethodName()+" address="+address);
-
+            
             // Create the result Intent and include the MAC address
             Intent intent = new Intent();
             intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
@@ -152,6 +138,8 @@ public class BTDeviceListActivity extends Activity {
             finish();
         }
     };
+    
+   
 	 /**
      * The BroadcastReceiver that listens for discovered devices and changes the title when
      * discovery is finished
