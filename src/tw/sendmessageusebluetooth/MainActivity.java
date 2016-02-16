@@ -2,10 +2,6 @@ package tw.sendmessageusebluetooth;
 
 import java.util.Set;
 
-import tw.com.sendmessageusebluetooth.bluetoothchat.BluetoothChatService;
-import tw.com.sendmessageusebluetooth.bluetoothchat.Constants;
-import tw.com.sendmessageusebluetooth.bluetoothchat.DeviceListActivity;
-import tw.com.sendmessageusebluetooth.bluetoothchat.R;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -14,7 +10,6 @@ import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;

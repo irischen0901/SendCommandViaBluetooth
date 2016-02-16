@@ -39,7 +39,7 @@ public class BTDeviceListActivity extends Activity {
 		 mNewDevicesArrayAdapter = new ArrayAdapter<String>(this,
 					R.layout.device_name);
 			
-		
+		 checkBlueToothAdapter();
 		 searchBondedDevice();
 		 
 		 // Register for broadcasts when a device is discovered
@@ -57,6 +57,14 @@ public class BTDeviceListActivity extends Activity {
 	                v.setVisibility(View.GONE);
 	            }
 	        });
+	}
+	private void checkBlueToothAdapter() {
+		mBTAdapter = BluetoothAdapter.getDefaultAdapter();
+		if (mBTAdapter == null) {
+			Toast.makeText(BTDeviceListActivity.this, "Bluetooth is not available",
+					Toast.LENGTH_SHORT).show();
+			finish();
+		}
 	}
 	private void searchBondedDevice() {
 		StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
