@@ -119,7 +119,7 @@ public class MainActivity extends Activity {
 		switch (requestCode) {
 		case REQUEST_CONNECT_DEVICE_SECURE:
 			if(resultCode==Activity.RESULT_OK){
-				connectDevice(data, true);
+				connectDevice(data);
 			}
 			break;
 
@@ -135,14 +135,17 @@ public class MainActivity extends Activity {
      * @param data   An {@link Intent} with {@link DeviceListActivity#EXTRA_DEVICE_ADDRESS} extra.
      * @param secure Socket Security type - Secure (true) , Insecure (false)
      */
-    private void connectDevice(Intent data, boolean secure) {
+    private void connectDevice(Intent data) {
         // Get the device MAC address
-        String address = data.getExtras()
-                .getString(BTDeviceListActivity.EXTRA_DEVICE_ADDRESS);
+        String address = data.getExtras().getString("extra_device_address");
+        String name = data.getExtras().getString("extra_device_name");
+        StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+   	 Log.e(MainActivity.tag, "143/" + ste.getFileName()+ " in "+ste.getMethodName()+" address="+address+" name="+name);
         // Get the BluetoothDevice object
+   	 	txvCurrentBTDevice.setText(name);
         BluetoothDevice device = mBTAdapter.getRemoteDevice(address);
         // Attempt to connect to the device
-        mConnectService.connect(device, secure);
+        mConnectService.connect(device);
     }
 	@Override
 	protected void onDestroy() {

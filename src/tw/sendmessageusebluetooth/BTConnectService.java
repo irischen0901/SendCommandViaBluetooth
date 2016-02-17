@@ -1,6 +1,8 @@
 package tw.sendmessageusebluetooth;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
@@ -21,7 +23,8 @@ public class BTConnectService {
     private final BluetoothAdapter mBTAdapter;
     private final Handler mHandler;
     private ConnectThread mConnectThread = null;
-//    private ConnectedThread mConnectedThread;
+//    private AcceptThread mSecureAcceptThread = null;
+    private ConnectedThread mConnectedThread;
     private int mState = 0;
     
     // Constants that indicate the current connection state
@@ -38,27 +41,22 @@ public class BTConnectService {
     }
     
     private synchronized void setState(int state) {
+    	 StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+   		Log.e(MainActivity.tag, "44-2/" + ste.getFileName()+ " in "+ste.getMethodName());
         mState = state;
 
         // Give the new state to the Handler so the UI Activity can update
         mHandler.obtainMessage(Constants.MESSAGE_STATE_CHANGE, state, -1).sendToTarget();
     }
     public synchronized void start() {
-
+    	 StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+   		Log.e(MainActivity.tag, "44-3/" + ste.getFileName()+ " in "+ste.getMethodName());
         // Cancel any thread attempting to make a connection
         if (mConnectThread != null) {
             mConnectThread.cancel();
             mConnectThread = null;
         }
-
-        // Cancel any thread currently running a connection
-//        if (mConnectedThread != null) {
-//            mConnectedThread.cancel();
-//            mConnectedThread = null;
-//        }
-        setState(STATE_LISTEN);
     }
-
     
     /**
      * Start the ConnectThread to initiate a connection to a remote device.
@@ -66,8 +64,9 @@ public class BTConnectService {
      * @param device The BluetoothDevice to connect
      * @param secure Socket Security type - Secure (true) , Insecure (false)
      */
-    public synchronized void connect(BluetoothDevice device, boolean secure) {
-
+    public synchronized void connect(BluetoothDevice device) {
+    	 StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+   		Log.e(MainActivity.tag, "44-4/" + ste.getFileName()+ " in "+ste.getMethodName());
         // Cancel any thread attempting to make a connection
         if (mState == STATE_CONNECTING) {
             if (mConnectThread != null) {
@@ -86,6 +85,54 @@ public class BTConnectService {
         mConnectThread = new ConnectThread(device);  
         mConnectThread.start();
         setState(STATE_CONNECTING);
+    }
+    public synchronized void connected(BluetoothSocket socket, BluetoothDevice
+            device) {
+    	StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+		Log.e(MainActivity.tag, "96/" + ste.getFileName()+ " in "+ste.getMethodName()+" mConnectThread="+mConnectThread);
+		Log.e(MainActivity.tag, "96-2/" + ste.getFileName()+ " in "+ste.getMethodName()+" mConnectedThread="+mConnectedThread);
+        // Cancel the thread that completed the connection
+        if (mConnectThread != null) {
+//            mConnectThread.cancel();
+            mConnectThread = null;
+        }
+
+        // Cancel any thread currently running a connection
+        if (mConnectedThread != null) {
+            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
+
+//        // Cancel the accept thread because we only want to connect to one device
+//        if (mSecureAcceptThread != null) {
+//            mSecureAcceptThread.cancel();
+//            mSecureAcceptThread = null;
+//        }
+//        if (mInsecureAcceptThread != null) {
+//            mInsecureAcceptThread.cancel();
+//            mInsecureAcceptThread = null;
+//        }
+
+        // Start the thread to manage the connection and perform transmissions
+        mConnectedThread = new ConnectedThread(socket);
+        mConnectedThread.start();
+
+        // Send the name of the connected device back to the UI Activity
+        Message msg = mHandler.obtainMessage(Constants.MESSAGE_DEVICE_NAME);
+        Bundle bundle = new Bundle();
+        bundle.putString("device_name", device.getName());
+        msg.setData(bundle);
+        mHandler.sendMessage(msg);
+
+        setState(STATE_CONNECTED);
+    }
+    public void write(byte[] out) {
+    	 StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+    	 Log.e(MainActivity.tag, "135/" + ste.getFileName()+ " in "+ste.getMethodName());
+    	synchronized (this) {
+    		if(mState != STATE_CONNECTED) return;
+    		 	mConnectedThread.write(out);
+		}
     }
     
     /**
@@ -110,6 +157,8 @@ public class BTConnectService {
     	}
     	
     	public void run(){
+    		 StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+    	  		Log.e(MainActivity.tag, "44-5/" + ste.getFileName()+ " in "+ste.getMethodName());
     		mBTAdapter.cancelDiscovery();
     		try{
     			mBTSocket.connect();
@@ -122,7 +171,9 @@ public class BTConnectService {
     			 connectionFailed();
     			 return;
     		}
-//    		connected(mBTSocket, mBTDevice);
+    		
+    		// Start the connected thread
+    		connected(mBTSocket, mBTDevice);
     	}
     	
         public void cancel() {
@@ -131,10 +182,65 @@ public class BTConnectService {
             } catch (IOException e) {
                 Log.e(MainActivity.tag, "my thread cancel", e);
             }
+           
         }
     }
     
-   private void connectionFailed() {
+    private class ConnectedThread extends Thread {
+    	private final BluetoothSocket mBTSocket;
+//    	private final InputStream mInputStream;
+    	private final OutputStream mOutputStream;
+    	
+    	private ConnectedThread (BluetoothSocket socket){
+    		this.mBTSocket = socket;
+//    		InputStream tempIn = null;
+    		OutputStream tempOut = null;
+    		
+    		try {
+//				tempIn = socket.getInputStream();
+				tempOut = socket.getOutputStream();
+			} catch (IOException e) {
+				Log.e(MainActivity.tag,"cann't get socket.getOutputStream()",e);
+				// TODO: handle exception
+			} 
+    		
+    		this.mOutputStream=tempOut;
+    	}
+    	
+    	 /**
+         * Write to the connected OutStream.
+         *
+         * @param buffer The bytes to write
+         */
+    	public void write(byte[] buffer){
+    		try {
+    			 StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+    	    	 Log.e(MainActivity.tag, "96-4/" + ste.getFileName()+ " in "+ste.getMethodName()+" mOutputStream="+mOutputStream);
+    			mOutputStream.write(buffer);
+        		// Share the sent message back to the UI Activity
+                mHandler.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, buffer).sendToTarget();
+			} catch (Exception e) {
+				Log.e(MainActivity.tag,"cann't write mOutputStream.write(buffer);",e);
+			}
+    		
+    	}
+    	
+    	public void cancel(){
+    		try {
+    			mBTSocket.close();
+    			 StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+    	    	 Log.e(MainActivity.tag, "96-3/" + ste.getFileName()+ " in "+ste.getMethodName()+" mBTSocket="+mBTSocket);
+    	    	
+			} catch (Exception e) {
+				Log.e(MainActivity.tag,"cann't close socket",e);
+			}
+    		
+    	}
+    }
+
+    private void connectionFailed() {
+    	StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+		Log.e(MainActivity.tag, "44-6/" + ste.getFileName()+ " in "+ste.getMethodName());
 	   Message msg = mHandler.obtainMessage(Constants.MESSAGE_TOAST);
 	   Bundle mBundle = new Bundle();
 	   mBundle.putString("connection fail", "Unable to connect device");

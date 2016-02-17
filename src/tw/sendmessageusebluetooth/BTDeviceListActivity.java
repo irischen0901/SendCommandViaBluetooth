@@ -25,7 +25,6 @@ import android.widget.Toast;
 public class BTDeviceListActivity extends Activity {
 	private BluetoothAdapter mBTAdapter = null;
 	private ArrayAdapter<String> pairedDevicesArrayAdapter = null,mNewDevicesArrayAdapter = null;
-	public static String EXTRA_DEVICE_ADDRESS = "device_address";
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -88,9 +87,6 @@ public class BTDeviceListActivity extends Activity {
         pairedListView.setOnItemClickListener(mDeviceClickListener);
 		
 	}
-
-
-
 	private void searchNewBTDevice() {
 		
 		setProgressBarIndeterminateVisibility(true);
@@ -136,10 +132,12 @@ public class BTDeviceListActivity extends Activity {
             Log.e(MainActivity.tag, "138/"+ste.getFileName()+" in "+ste.getMethodName()+" info="+info);
            
             String address = info.substring(info.length() - 17);
-            
+            String name = info.substring(0,info.length() - 18);
+            Log.e(MainActivity.tag, "138/"+ste.getFileName()+" in "+ste.getMethodName()+" name="+name);
             // Create the result Intent and include the MAC address
             Intent intent = new Intent();
-            intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
+            intent.putExtra("extra_device_address", address);
+            intent.putExtra("extra_device_name", name);
 
             // Set result and finish this Activity
             setResult(Activity.RESULT_OK, intent);
