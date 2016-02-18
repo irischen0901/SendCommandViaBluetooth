@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,7 +27,9 @@ public class MainActivity extends Activity {
 	private TextView txvCurrentBTDevice = null;
 	private Button btnSearch = null;
 	private BTConnectService mConnectService = null;
-	public static String tag = "BTSearch";
+	private String mConnectedDeviceName = null;
+	private ListView lvMessage = null;
+	public static String tag = "BTSend";
 	 private static final int REQUEST_CONNECT_DEVICE_SECURE = 1;
 	 
 	@Override
@@ -44,22 +47,21 @@ public class MainActivity extends Activity {
 	 private final Handler mHandler = new Handler() {
 	        @Override
 	        public void handleMessage(Message msg) {
-//	            switch (msg.what) {
-//	                case Constants.MESSAGE_STATE_CHANGE:
-//	                    switch (msg.arg1) {
-//	                        case BluetoothChatService.STATE_CONNECTED:
-//	                            setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
-//	                            mConversationArrayAdapter.clear();
-//	                            break;
-//	                        case BluetoothChatService.STATE_CONNECTING:
-//	                            setStatus(R.string.title_connecting);
-//	                            break;
-//	                        case BluetoothChatService.STATE_LISTEN:
-//	                        case BluetoothChatService.STATE_NONE:
-//	                            setStatus(R.string.title_not_connected);
-//	                            break;
-//	                    }
-//	                    break;
+	            switch (msg.what) {
+	                case Constants.MESSAGE_STATE_CHANGE:
+	                    switch (msg.arg1) {
+	                        case BTConnectService.STATE_CONNECTED:
+	                        	txvCurrentBTDevice.setText(mConnectedDeviceName);
+	                            break;
+	                        case BTConnectService.STATE_CONNECTING:
+	                        	txvCurrentBTDevice.setText(R.string.title_connecting);
+	                            break;
+	                        case BTConnectService.STATE_LISTEN:
+	                        case BTConnectService.STATE_NONE:
+	                        	txvCurrentBTDevice.setText(R.string.title_not_connected);
+	                            break;
+	                    }
+	                    break;
 //	                case Constants.MESSAGE_WRITE:
 //	                    byte[] writeBuf = (byte[]) msg.obj;
 //	                    // construct a string from the buffer
@@ -72,21 +74,17 @@ public class MainActivity extends Activity {
 //	                    String readMessage = new String(readBuf, 0, msg.arg1);
 //	                    mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
 //	                    break;
-//	                case Constants.MESSAGE_DEVICE_NAME:
-//	                    // save the connected device's name
-//	                    mConnectedDeviceName = msg.getData().getString(Constants.DEVICE_NAME);
-//	                    if (null != activity) {
-//	                        Toast.makeText(activity, "Connected to "
-//	                                + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
-//	                    }
-//	                    break;
-//	                case Constants.MESSAGE_TOAST:
-//	                    if (null != activity) {
-//	                        Toast.makeText(activity, msg.getData().getString(Constants.TOAST),
-//	                                Toast.LENGTH_SHORT).show();
-//	                    }
-//	                    break;
-//	            }
+	                case Constants.MESSAGE_DEVICE_NAME:
+	                    // save the connected device's name
+	                    mConnectedDeviceName = msg.getData().getString("device_name");
+	                        Toast.makeText(MainActivity.this, "Connected to "
+	                                + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+	                    break;
+	                case Constants.MESSAGE_TOAST:
+	                        Toast.makeText(MainActivity.this, msg.getData().getString(Constants.TOAST),
+	                                Toast.LENGTH_SHORT).show();
+	                    break;
+	            }
 	        }
 	    };
 	/**
@@ -104,6 +102,7 @@ public class MainActivity extends Activity {
 		txvCurrentBTDevice = (TextView) findViewById(R.id.txvCurrentBTDevice);
 		btnSearch = (Button) findViewById(R.id.btnSearch);
 		btnSearch.setOnClickListener(searchOnClickListener);
+		lvMessage = (ListView)findViewById(R.id.lvMessage);
 	}
 
 	OnClickListener searchOnClickListener = new OnClickListener() {
@@ -138,17 +137,20 @@ public class MainActivity extends Activity {
     private void connectDevice(Intent data) {
         // Get the device MAC address
         String address = data.getExtras().getString("extra_device_address");
-        String name = data.getExtras().getString("extra_device_name");
+//        String name = data.getExtras().getString("extra_device_name");
         StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
-   	 Log.e(MainActivity.tag, "143/" + ste.getFileName()+ " in "+ste.getMethodName()+" address="+address+" name="+name);
+   	 Log.e(MainActivity.tag, "143/" + ste.getFileName()+ " in "+ste.getMethodName()+" address="+address);
         // Get the BluetoothDevice object
-   	 	txvCurrentBTDevice.setText(name);
+//   	 	txvCurrentBTDevice.setText(name);
         BluetoothDevice device = mBTAdapter.getRemoteDevice(address);
         // Attempt to connect to the device
         mConnectService.connect(device);
     }
 	@Override
 	protected void onDestroy() {
+		   if (mConnectService != null) {
+			   mConnectService.stop();
+	        }
 		super.onDestroy();
 
 		// Make sure we're not doing discovery anymore

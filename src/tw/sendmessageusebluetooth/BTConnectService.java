@@ -12,6 +12,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Contacts;
 import android.util.Log;
 
 
@@ -56,6 +57,13 @@ public class BTConnectService {
             mConnectThread.cancel();
             mConnectThread = null;
         }
+        
+        if (mConnectedThread != null) {
+            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
+        setState(STATE_LISTEN);
+        
     }
     
     /**
@@ -134,7 +142,20 @@ public class BTConnectService {
     		 	mConnectedThread.write(out);
 		}
     }
-    
+    public synchronized void stop() {
+
+        if (mConnectThread != null) {
+            mConnectThread.cancel();
+            mConnectThread = null;
+        }
+
+        if (mConnectedThread != null) {
+            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
+
+        setState(STATE_NONE);
+    }
     /**
      * This thread runs while attempting to make an outgoing connection
      * with a device. It runs straight through; the connection either
@@ -188,24 +209,47 @@ public class BTConnectService {
     
     private class ConnectedThread extends Thread {
     	private final BluetoothSocket mBTSocket;
-//    	private final InputStream mInputStream;
+    	private final InputStream mInputStream;
     	private final OutputStream mOutputStream;
     	
     	private ConnectedThread (BluetoothSocket socket){
     		this.mBTSocket = socket;
-//    		InputStream tempIn = null;
+    		InputStream tempIn = null;
     		OutputStream tempOut = null;
     		
     		try {
-//				tempIn = socket.getInputStream();
+				tempIn = socket.getInputStream();
 				tempOut = socket.getOutputStream();
 			} catch (IOException e) {
 				Log.e(MainActivity.tag,"cann't get socket.getOutputStream()",e);
 				// TODO: handle exception
 			} 
-    		
-    		this.mOutputStream=tempOut;
+    		this.mInputStream = tempIn;
+    		this.mOutputStream = tempOut;
     	}
+    	 public void run() {
+             byte[] buffer = new byte[1024];
+             int bytes;
+
+             // Keep listening to the InputStream while connected
+             while (true) {
+                 try {
+                     // Read from the InputStream
+                     bytes = mInputStream.read(buffer);
+
+                     // Send the obtained bytes to the UI Activity
+                     mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer)
+                             .sendToTarget();
+                 } catch (IOException e) {
+                     Log.e(MainActivity.tag, "lost connected", e);
+                     connectionLost();
+                     // Start the service over to restart listening mode
+                     BTConnectService.this.start();
+                     break;
+                 }
+             }
+         }
+    	
     	
     	 /**
          * Write to the connected OutStream.
@@ -243,10 +287,20 @@ public class BTConnectService {
 		Log.e(MainActivity.tag, "44-6/" + ste.getFileName()+ " in "+ste.getMethodName());
 	   Message msg = mHandler.obtainMessage(Constants.MESSAGE_TOAST);
 	   Bundle mBundle = new Bundle();
-	   mBundle.putString("connection fail", "Unable to connect device");
+	   mBundle.putString(Constants.TOAST, "Unable to connect device");
 	   msg.setData(mBundle);
 	   mHandler.sendMessage(msg);
 	   
 	   BTConnectService.this.start();
-}
+    }
+    private void connectionLost() {
+    	Message msg = mHandler.obtainMessage(Constants.MESSAGE_TOAST);
+    	Bundle mBundle = new Bundle();
+    	mBundle.putString(Constants.TOAST, "Device connection was lost");
+    	msg.setData(mBundle);
+    	mHandler.sendMessage(msg);
+    	
+    	BTConnectService.this.start();
+		
+	}
 }
