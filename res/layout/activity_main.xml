@@ -40,39 +40,20 @@
         android:layout_below="@+id/linoutBTSearch"
         android:text="@string/search" />
 
-    <ScrollView
-        android:id="@+id/scrollView1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/btnSearch" 
-        android:layout_above="@+id/linoutSendMessage" >
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical" >
-
-            <ListView
+ 
+	 <ListView
                 android:id="@+id/lvMessage"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
-            </ListView>
-        </LinearLayout>
-    </ScrollView>
-
+                android:layout_height="match_parent"
+                android:layout_below="@id/btnSearch" 
+       		    android:layout_above="@+id/linoutSendMessage" >
+     </ListView>
     <LinearLayout
         android:id="@+id/linoutSendMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" 
         android:gravity="center" 
         android:layout_alignParentBottom="true">
-
-        <EditText
-            android:id="@+id/editText1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10" />
 
         <Button
             android:id="@+id/button1"

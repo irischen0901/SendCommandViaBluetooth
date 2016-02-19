@@ -16,6 +16,8 @@ import android.view.MenuItem;
 import android.view.TextureView;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -29,6 +31,7 @@ public class MainActivity extends Activity {
 	private BTConnectService mConnectService = null;
 	private String mConnectedDeviceName = null;
 	private ListView lvMessage = null;
+	private ArrayAdapter<String> mMessageAdapter =null ;
 	public static String tag = "BTSend";
 	 private static final int REQUEST_CONNECT_DEVICE_SECURE = 1;
 	 
@@ -36,7 +39,8 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		 checkBlueToothAdapter();
+		checkBlueToothAdapter();
+		initialMessageAdapter();
 		findView();
 	}
 	 @Override
@@ -44,6 +48,23 @@ public class MainActivity extends Activity {
 	        super.onStart();
 	        mConnectService = new BTConnectService(MainActivity.this, mHandler); 
 	 }
+	 
+	 private void initialMessageAdapter() {
+		 mMessageAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1);
+		 mMessageAdapter.add("整合科技ABCDEFG");
+		 mMessageAdapter.add("0130304130333130BEE3A658ACECA7DE414243444546472002BA");
+		 mMessageAdapter.add(getString(R.string.add_new_message));
+		
+	}
+	 private void findView() {
+			txvCurrentBTDevice = (TextView) findViewById(R.id.txvCurrentBTDevice);
+			btnSearch = (Button) findViewById(R.id.btnSearch);
+			btnSearch.setOnClickListener(searchOnClickListener);
+			lvMessage = (ListView)findViewById(R.id.lvMessage);
+			lvMessage.setAdapter(mMessageAdapter);
+			lvMessage.setOnItemClickListener(messagechange);
+			
+		}
 	 private final Handler mHandler = new Handler() {
 	        @Override
 	        public void handleMessage(Message msg) {
@@ -98,12 +119,19 @@ public class MainActivity extends Activity {
 			finish();
 		}
 	}
-	private void findView() {
-		txvCurrentBTDevice = (TextView) findViewById(R.id.txvCurrentBTDevice);
-		btnSearch = (Button) findViewById(R.id.btnSearch);
-		btnSearch.setOnClickListener(searchOnClickListener);
-		lvMessage = (ListView)findViewById(R.id.lvMessage);
-	}
+	
+	
+	private OnItemClickListener messagechange = new OnItemClickListener() {
+
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position,
+				long id) {
+			// TODO Auto-generated method stub
+		
+		}
+	};
+
+	
 
 	OnClickListener searchOnClickListener = new OnClickListener() {
 

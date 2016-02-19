@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="tw.sendmessageusebluetooth"
     android:versionCode="1"
-    android:versionName="1.0.03" >
+    android:versionName="1.0.04" >
    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-sdk
