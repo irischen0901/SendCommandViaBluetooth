@@ -1,7 +1,9 @@
 package tw.sendmessageusebluetooth;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Set;
 
+import android.R.integer;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -28,6 +30,7 @@ public class MainActivity extends Activity {
 	private BluetoothAdapter mBTAdapter = null;
 	private TextView txvCurrentBTDevice = null;
 	private Button btnSearch = null;
+	private Button btnSend = null;
 	private BTConnectService mConnectService = null;
 	private String mConnectedDeviceName = null;
 	private ListView lvMessage = null;
@@ -51,7 +54,7 @@ public class MainActivity extends Activity {
 	 
 	 private void initialMessageAdapter() {
 		 mMessageAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1);
-		 mMessageAdapter.add("整合科技ABCDEFG");
+		 mMessageAdapter.add("00A0310整合科技ABCDEFG ");
 		 mMessageAdapter.add("0130304130333130BEE3A658ACECA7DE414243444546472002BA");
 		 mMessageAdapter.add(getString(R.string.add_new_message));
 		
@@ -63,8 +66,69 @@ public class MainActivity extends Activity {
 			lvMessage = (ListView)findViewById(R.id.lvMessage);
 			lvMessage.setAdapter(mMessageAdapter);
 			lvMessage.setOnItemClickListener(messagechange);
+			btnSend = (Button)findViewById(R.id.btnSend);
+			btnSend.setOnClickListener(btnSendOnClickListener);
 			
 		}
+	 
+	 private OnClickListener btnSendOnClickListener = new OnClickListener(){
+
+		@Override
+		public void onClick(View v) {
+			// TODO Auto-generated method stub
+			sendMessage();
+		}
+		 
+	 };
+	 
+	 /**
+	     * Sends a message.
+	     *
+	     * @param message A string of text to send.
+	     */
+	    private void sendMessage() {
+	    	StackTraceElement ste= Thread.currentThread().getStackTrace()[2];
+	    	Log.e(MainActivity.tag, "91/"+ste.getFileName()+" ,in "+ste.getMethodName());
+
+	        // Check that we're actually connected before trying anything
+//	        if (mConnectService.getState() != mConnectService.STATE_CONNECTED) {
+//	            Toast.makeText(MainActivity.this, R.string.not_connected, Toast.LENGTH_SHORT).show();
+//	            return;
+//	        }
+
+	        // Check that there's actually something to send
+	        if (mMessageAdapter.getCount() > 1) {
+	        	
+	            // Get the message bytes and tell the BluetoothChatService to write
+	        	for(int i=0;i<mMessageAdapter.getCount()-1;i++)
+	        	Log.e(MainActivity.tag, "109/"+ste.getFileName()+" ,in "+ste.getMethodName()+" lvMessage.toString()="+mMessageAdapter.getItem(i));
+	        }
+	            byte[] send = null;
+	            String send_start = String.format("%02X", 1);
+	            String send_end = String.format("%02X", 2);
+	            String CheckNumber = "BA";
+	            String mMessage = null;
+				try {
+					send = mMessageAdapter.getItem(0).getBytes("big5");
+					Log.e(MainActivity.tag, "109/"+ste.getFileName()+" ,in "+ste.getMethodName()+" mMessageAdapter.getItem(0)="+mMessageAdapter.getItem(0));
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				for (int j=0;j<send.length;j++){
+					send_start = send_start+String.format("%02X", send[j])+" ";
+//					Log.e(MainActivity.tag, " %x "+send[j]);
+				}
+				mMessage=send_start+send_end;
+	            Log.e(MainActivity.tag, mMessage);
+//	            mConnectService.write(send);
+
+	            // Reset out string buffer to zero and clear the edit text field
+//	            mOutStringBuffer.setLength(0);
+//	            mOutEditText.setText(mOutStringBuffer);
+//	        }
+	    }
 	 private final Handler mHandler = new Handler() {
 	        @Override
 	        public void handleMessage(Message msg) {

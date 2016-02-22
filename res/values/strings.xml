@@ -12,6 +12,7 @@
     <string name="none_found">No devices found</string>
     <string name="no_paired_device">No paired device</string>
     <string name="paired_devices">Paired Devices</string>
+    <string name="not_connected">You are not connected to a device</string>
     <string name="other_devices">Other Devices</string>
     <string name="title_connecting">connecting...</string>
     <string name="title_connected_to">connected to</string>
