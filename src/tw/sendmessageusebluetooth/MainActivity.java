@@ -1,6 +1,7 @@
 package tw.sendmessageusebluetooth;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.Set;
 
 import android.R.integer;
@@ -54,7 +55,7 @@ public class MainActivity extends Activity {
 	 
 	 private void initialMessageAdapter() {
 		 mMessageAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1);
-		 mMessageAdapter.add("00A0310整合科技ABCDEFG ");
+		 mMessageAdapter.add("整合科技ABCDEFG ");
 		 mMessageAdapter.add("0130304130333130BEE3A658ACECA7DE414243444546472002BA");
 		 mMessageAdapter.add(getString(R.string.add_new_message));
 		
@@ -87,6 +88,7 @@ public class MainActivity extends Activity {
 	     * @param message A string of text to send.
 	     */
 	    private void sendMessage() {
+	    	byte[] processedMessage =null;
 	    	StackTraceElement ste= Thread.currentThread().getStackTrace()[2];
 	    	Log.e(MainActivity.tag, "91/"+ste.getFileName()+" ,in "+ste.getMethodName());
 
@@ -102,33 +104,99 @@ public class MainActivity extends Activity {
 	            // Get the message bytes and tell the BluetoothChatService to write
 	        	for(int i=0;i<mMessageAdapter.getCount()-1;i++)
 	        	Log.e(MainActivity.tag, "109/"+ste.getFileName()+" ,in "+ste.getMethodName()+" lvMessage.toString()="+mMessageAdapter.getItem(i));
+	            
+	        	processedMessage = processMessage();
+//	        	processedMessage = processMessage2();
 	        }
-	            byte[] send = null;
-	            String send_start = String.format("%02X", 1);
-	            String send_end = String.format("%02X", 2);
-	            String CheckNumber = "BA";
-	            String mMessage = null;
-				try {
-					send = mMessageAdapter.getItem(0).getBytes("big5");
-					Log.e(MainActivity.tag, "109/"+ste.getFileName()+" ,in "+ste.getMethodName()+" mMessageAdapter.getItem(0)="+mMessageAdapter.getItem(0));
-				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				for (int j=0;j<send.length;j++){
-					send_start = send_start+String.format("%02X", send[j])+" ";
-//					Log.e(MainActivity.tag, " %x "+send[j]);
-				}
-				mMessage=send_start+send_end;
-	            Log.e(MainActivity.tag, mMessage);
-//	            mConnectService.write(send);
+	        
+	            mConnectService.write(processedMessage);
 
 	            // Reset out string buffer to zero and clear the edit text field
 //	            mOutStringBuffer.setLength(0);
 //	            mOutEditText.setText(mOutStringBuffer);
 //	        }
 	    }
+	    private byte[] processMessage(){
+			 StackTraceElement ste= Thread.currentThread().getStackTrace()[2];
+			 ByteBuffer ByteBuffer_processedMessage =null ;
+			 byte[] processedMessage = null;
+			 String AdapterMessage = null;
+	         byte send_start =0x1;
+	         byte send_end = 0x2;
+	         int CheckNumber =send_start^send_end;
+//	         String CheckNumber = "BA";
+				try {
+					AdapterMessage = mMessageAdapter.getItem(0);
+					AdapterMessage = "00A0310"+AdapterMessage;
+					processedMessage = AdapterMessage.getBytes("big5");
+					Log.e(MainActivity.tag, "109/"+ste.getFileName()+" ,in "+ste.getMethodName()+" AdapterMessage="+AdapterMessage);
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				for (int j=0;j<processedMessage.length;j++){
+					CheckNumber = CheckNumber^ processedMessage[j];
+				}
+				
+				ByteBuffer_processedMessage = ByteBuffer.allocate(processedMessage.length+3);
+				ByteBuffer_processedMessage.put(send_start);
+				ByteBuffer_processedMessage.put(processedMessage,0,processedMessage.length);
+				ByteBuffer_processedMessage.put(send_end);
+				ByteBuffer_processedMessage.put((byte)CheckNumber);
+				processedMessage = ByteBuffer_processedMessage.array();
+				
+				
+				String temp=" ";
+				for (int j=0;j<processedMessage.length;j++){
+					temp = temp+String.format("%02X", processedMessage[j])+" ";
+//					Log.e(MainActivity.tag, " %x "+send[j]);
+				}
+	         Log.e(MainActivity.tag, "processedMessage2="+temp);
+			 return processedMessage;
+		 }
+//	 private byte[] processMessage2(){   //do XOR step by step 
+//		 StackTraceElement ste= Thread.currentThread().getStackTrace()[2];
+//		 ByteBuffer ByteBuffer_processedMessage =null ;
+//		 byte[] processedMessage = null;
+//		 String AdapterMessage = null;
+//         byte send_start =0x1;
+//         byte send_end = 0x2;
+//         int CheckNumber = 0;
+////         String CheckNumber = "BA";
+//			try {
+//				AdapterMessage = mMessageAdapter.getItem(0);
+//				AdapterMessage = "00A0310"+AdapterMessage;
+//				processedMessage = AdapterMessage.getBytes("big5");
+//				Log.e(MainActivity.tag, "109/"+ste.getFileName()+" ,in "+ste.getMethodName()+" AdapterMessage="+AdapterMessage);
+//			} catch (UnsupportedEncodingException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			ByteBuffer_processedMessage = ByteBuffer.allocate(processedMessage.length+3);
+//			ByteBuffer_processedMessage.put(send_start);
+//			ByteBuffer_processedMessage.put(processedMessage,0,processedMessage.length);
+//			ByteBuffer_processedMessage.put(send_end);
+//			processedMessage = ByteBuffer_processedMessage.array();
+//			
+//			for (int j=0;j<processedMessage.length;j++){
+//				CheckNumber = CheckNumber^ processedMessage[j];
+//			}
+//			ByteBuffer_processedMessage.put((byte)CheckNumber);
+//			processedMessage = ByteBuffer_processedMessage.array();
+//			
+//			
+//			String temp=" ";
+//			for (int j=0;j<processedMessage.length;j++){
+//				temp = temp+String.format("%02X", processedMessage[j])+" ";
+////				Log.e(MainActivity.tag, " %x "+send[j]);
+//			}
+//         Log.e(MainActivity.tag, "processedMessage="+temp);
+//		 return processedMessage;
+//	 }
+	 
+	 
+	
 	 private final Handler mHandler = new Handler() {
 	        @Override
 	        public void handleMessage(Message msg) {
