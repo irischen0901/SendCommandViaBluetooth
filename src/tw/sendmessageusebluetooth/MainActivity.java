@@ -153,6 +153,7 @@ public class MainActivity extends Activity {
 //					Log.e(MainActivity.tag, " %x "+send[j]);
 				}
 	         Log.e(MainActivity.tag, "processedMessage2="+temp);
+	         Toast.makeText(MainActivity.this, "prepare to send message "+ temp, Toast.LENGTH_SHORT).show();
 			 return processedMessage;
 		 }
 //	 private byte[] processMessage2(){   //do XOR step by step 
@@ -215,12 +216,13 @@ public class MainActivity extends Activity {
 	                            break;
 	                    }
 	                    break;
-//	                case Constants.MESSAGE_WRITE:
+	                case Constants.MESSAGE_WRITE:
+	                	Toast.makeText(MainActivity.this, "** complete  MESSAGE_WRITE !! **", Toast.LENGTH_SHORT).show();
 //	                    byte[] writeBuf = (byte[]) msg.obj;
-//	                    // construct a string from the buffer
+	                    // construct a string from the buffer
 //	                    String writeMessage = new String(writeBuf);
 //	                    mConversationArrayAdapter.add("Me:  " + writeMessage);
-//	                    break;
+	                    break;
 //	                case Constants.MESSAGE_READ:
 //	                    byte[] readBuf = (byte[]) msg.obj;
 //	                    // construct a string from the valid bytes in the buffer

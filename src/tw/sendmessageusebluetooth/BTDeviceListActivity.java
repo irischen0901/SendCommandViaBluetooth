@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -57,6 +58,7 @@ public class BTDeviceListActivity extends Activity {
 	            }
 	        });
 	}
+	
 	private void checkBlueToothAdapter() {
 		mBTAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (mBTAdapter == null) {
@@ -68,6 +70,9 @@ public class BTDeviceListActivity extends Activity {
 	private void searchBondedDevice() {
 		StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
 		Log.e(MainActivity.tag, "35/"+ste.getFileName()+" in "+ste.getMethodName());
+		Toast.makeText(BTDeviceListActivity.this, " search Bonded Device",
+				Toast.LENGTH_SHORT).show();
+		
 		Set<BluetoothDevice> pairedDevices = mBTAdapter.getBondedDevices();
 
 		if (pairedDevices.size() > 0) {
@@ -88,12 +93,14 @@ public class BTDeviceListActivity extends Activity {
 		
 	}
 	private void searchNewBTDevice() {
+		StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
+		Log.e(MainActivity.tag, "97/"+ste.getFileName()+" in "+ste.getMethodName());
+		Toast.makeText(BTDeviceListActivity.this, " search New BT Device",
+				Toast.LENGTH_SHORT).show();
 		
 		setProgressBarIndeterminateVisibility(true);
         
 		// If we're already discovering, stop it
-		StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
-		Log.e(MainActivity.tag, "77/"+ste.getFileName()+" in "+ste.getMethodName());
 		setTitle(R.string.scanning);
 		if (mBTAdapter.isDiscovering()) {
 			mBTAdapter.cancelDiscovery();

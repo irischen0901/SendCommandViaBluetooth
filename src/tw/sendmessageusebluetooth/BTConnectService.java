@@ -18,8 +18,8 @@ import android.util.Log;
 
 public class BTConnectService {
 	  // Unique UUID for this application
-    private static final UUID MY_UUID_SECURE = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
-//    private static final UUID SERIAL_PORT_SERVICE_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+//    private static final UUID MY_UUID_SECURE = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
+    private static final UUID MY_UUID_SECURE = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private final BluetoothAdapter mBTAdapter;
     private final Handler mHandler;
@@ -142,7 +142,14 @@ public class BTConnectService {
     	 StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
     	 Log.e(MainActivity.tag, "135/" + ste.getFileName()+ " in "+ste.getMethodName());
     	synchronized (this) {
-    		if(mState != STATE_CONNECTED) return;
+    		if(mState != STATE_CONNECTED) {
+    			Message msg = mHandler.obtainMessage(Constants.MESSAGE_TOAST);
+    			Bundle mBundle = new Bundle();
+    			mBundle.putString(Constants.TOAST, "the connect is broken !!");
+    			msg.setData(mBundle);
+    			mHandler.sendMessage(msg);
+    			return;
+    		}
     		 	mConnectedThread.write(out);
 		}
     }
@@ -264,7 +271,9 @@ public class BTConnectService {
     		try {
     			 StackTraceElement ste = Thread.currentThread().getStackTrace()[2];
     	    	 Log.e(MainActivity.tag, "96-4/" + ste.getFileName()+ " in "+ste.getMethodName()+" mOutputStream="+mOutputStream);
-    			mOutputStream.write(buffer);
+    			
+    	    	 
+    	    	 mOutputStream.write(buffer);
         		// Share the sent message back to the UI Activity
                 mHandler.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, buffer).sendToTarget();
 			} catch (Exception e) {
